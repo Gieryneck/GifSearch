@@ -11,41 +11,32 @@ App = React.createClass({
         };
     },
 
-    handleSearch: function(searchingText) {  // 1.
+    handleSearch: function(searchingText) {  
         
                 this.setState({
         
-                    loading: true  // 2.
+                    loading: true  
                 });
         
-                this.getGif(searchingText, function (gif) {  // 3.
-                    this.setState({  // 4
-                        loading: false,  // a
-                        gif: gif,  // b
-                        searchingText: searchingText  // c
-                    });
-                }.bind(this));
+                this.getGif(searchingText)
+                        .then((response) => {
+                            //console.log(response);
+                            const data = JSON.parse(response).data; 
+                            const gif = {  
+                                url: data.fixed_width_downsampled_url,
+                                sourceUrl: data.url
+                            };
+                            
+                            this.setState({
+                                loading: false,  
+                                gif: gif,  
+                                searchingText: searchingText
+                            });
+                        
+                        })
+                        .catch(error => console.log(error.statusText)); 
+            
             },
-        
-            /*
-            bind(this) aby zachować kontekst.
-             Przekazywana do metody getGif funkcja wskazuje na coś innego niż komponent App,
-              dlatego trzeba posłużyć się pewnym obejściem (metoda bind), które zachowa odpowiedni 
-              kontekst.
-            */
-        
-        
-            /*
-            Algorytm postępowania dla tej metody jest następujący:
-        
-        1 pobierz na wejściu wpisywany tekst,
-        2 zasygnalizuj, że zaczął się proces ładowania,
-        3 Rozpocznij pobieranie gifa,
-        4 Na zakończenie pobierania:
-        -przestań sygnalizować ładowanie,
-        -ustaw nowego gifa z wyniku pobierania,
-        -ustaw nowy stan dla wyszukiwanego tekstu.
-            */
 
     render: function() {
 
@@ -70,25 +61,46 @@ App = React.createClass({
         );
     },
 
+/*
+Zadanie polega na opakowaniu kodu pobierającego gifa w promise'a,
+ a następnie wywołanie metody then w celu obsłużenia wyniku zapytania
+*/
 
-    getGif: function(searchingText, callback) {  // 1.
-        var GIPHY_API_URL = 'http://api.giphy.com';
-        var GIPHY_PUB_KEY = '1ltIITOSzL0g1i0q0c4SGpGfDnd1Pn1M';
-        var url = GIPHY_API_URL + '/v1/gifs/random?api_key=' + GIPHY_PUB_KEY + '&tag=' + searchingText;  // 2.
-        var xhr = new XMLHttpRequest();  // 3.
-        xhr.open('GET', url);
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-               var data = JSON.parse(xhr.responseText).data; // 4.
-                var gif = {  // 5.
-                    url: data.fixed_width_downsampled_url,
-                    sourceUrl: data.url
+    getGif: function(searchingText) { 
+    
+        return new Promise(
+
+            function(resolve, reject) {
+
+                const GIPHY_API_URL = 'http://api.giphy.com';
+                const GIPHY_PUB_KEY = '1ltIITOSzL0g1i0q0c4SGpGfDnd1Pn1M';
+                const url = GIPHY_API_URL + '/v1/gifs/random?api_key=' + GIPHY_PUB_KEY + '&tag=' + searchingText;
+                const xhr = new XMLHttpRequest();
+
+                xhr.onload = function() {
+                    if (this.status === 200) {
+
+                        resolve(this.responseText);
+
+                    } else {
+
+                        reject(new Error(this.statusText));
+                    }
                 };
-                callback(gif);  // 6.
+
+                xhr.onerror = function () {
+
+                    reject(new Error(`XMLHttpRequest Error: ${this.statusText}`));
+                };
+                xhr.open('GET', url);
+                xhr.send();          
             }
-        };
-        xhr.send();
+        );
+
+
+
     },
+
 });
 
 
