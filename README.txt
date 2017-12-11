@@ -1,0 +1,1 @@
+This project runs on http-server package. Type "npm run start" in the terminal to create a new server, and open the server url in the browser.
