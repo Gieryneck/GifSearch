@@ -1,1 +1,1 @@
-This project runs on http-server package. Type "npm run start" in the terminal to create a new server, and open the server url in the browser.
+This project runs on http-server package. Make sure you have npm installed. Type "npm run start" in the terminal to create a new server, and open the server url in the browser.
